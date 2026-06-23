@@ -7,27 +7,56 @@ import { useMockResource } from '../../hooks/useMockResource';
 import { demoAdapter } from '../../api/adapters/demoAdapter';
 import { lt } from '../../api/contracts';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useState } from 'react';
 
 export function OverviewPage() {
   const { data, loading } = useMockResource(demoAdapter.getOverviewSnapshot);
   const { text } = useI18n();
 
+  const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
+
+  const [severityFilter, setSeverityFilter] = useState<
+  'all' | 'danger' | 'warning' | 'info'
+>('all');
+
   if (loading || !data) return <LoadingDeck />;
 
-  return (
-    <div className="page-stack">
-      <section className="feature-banner">
-        <div>
-          <span className="eyebrow">{text(lt('Program Narrative', 'נרטיב התוכנית'))}</span>
-          <h2>{text(data.missionTitle)}</h2>
-          <p>{text(data.missionNarrative)}</p>
-        </div>
-        <div className="feature-banner__chips">
-          <StatusPill tone="accent" label={text(lt('GCP-first', 'GCP-first'))} />
-          <StatusPill tone="success" label={text(lt('React + TypeScript', 'React + TypeScript'))} />
-          <StatusPill tone="warning" label={text(lt('Human oversight on', 'פיקוח אנושי פעיל'))} />
-        </div>
-      </section>
+  const filteredAlerts =
+  severityFilter === 'all'
+    ? data.alerts
+    : data.alerts.filter(
+        (alert) => alert.severity === severityFilter
+      );
+
+    
+    return (
+  <div className="page-stack">
+    <section className="feature-banner">
+      <div>
+        <span className="eyebrow">
+          {text(lt('Program Narrative', 'נרטיב התוכנית'))}
+        </span>
+        <h2>{text(data.missionTitle)}</h2>
+        <p>{text(data.missionNarrative)}</p>
+      </div>
+
+      <div className="feature-banner__chips">
+        <StatusPill
+          tone="accent"
+          label={text(lt('GCP-first', 'GCP-first'))}
+        />
+
+        <StatusPill
+          tone="success"
+          label={text(lt('React + TypeScript', 'React + TypeScript'))}
+        />
+
+        <StatusPill
+          tone="warning"
+          label={text(lt('Human oversight on', 'פיקוח אנושי פעיל'))}
+        />
+      </div>
+    </section>
 
       <div className="metric-grid">
         {data.metrics.map((metric) => (
@@ -42,19 +71,91 @@ export function OverviewPage() {
           eyebrow={lt('Operations Pulse', 'דופק תפעולי')}
           accent="warning"
         >
+          <div className="signal-filters">
+  <button
+    className={severityFilter === 'all' ? 'active' : ''}
+    onClick={(e) => {
+  e.stopPropagation();
+  setSeverityFilter('all');
+}}
+  >
+    All
+  </button>
+
+  <button
+    className={severityFilter === 'warning' ? 'active' : ''}
+    onClick={(e) => {
+  e.stopPropagation();
+  setSeverityFilter('warning');
+}}
+  >
+    Warning
+  </button>
+
+  <button
+    className={severityFilter === 'info' ? 'active' : ''}
+    onClick={(e) => {
+  e.stopPropagation();
+  setSeverityFilter('info');
+}}
+  >
+    Info
+  </button>
+
+  <button
+    className={severityFilter === 'danger' ? 'active' : ''}
+    onClick={(e) => {
+  e.stopPropagation();
+  setSeverityFilter('danger');
+}}
+  >
+    Critical
+  </button>
+</div>
           <div className="stack-list">
-            {data.alerts.map((alert) => (
-              <article key={alert.id} className="signal-row">
-                <div>
-                  <div className="signal-row__topline">
-                    <strong>{text(alert.title)}</strong>
-                    <StatusPill tone={alert.severity} label={alert.source} />
-                  </div>
-                  <p>{text(alert.summary)}</p>
-                </div>
-                <span className="signal-age">{alert.age}</span>
-              </article>
-            ))}
+            {filteredAlerts.map((alert) => (
+  <article
+    key={alert.id}
+    className="signal-row"
+    onClick={() =>
+      setSelectedAlert(selectedAlert === alert.id ? null : alert.id)
+    }
+  >
+    <div>
+      <div className="signal-row__topline">
+        <strong>{text(alert.title)}</strong>
+        <StatusPill tone={alert.severity} label={alert.source} />
+      </div>
+
+      <p>{text(alert.summary)}</p>
+
+      {selectedAlert === alert.id && (
+        <div className="signal-details">
+          <p>
+            {text(
+                lt(
+                  'Suggested action: investigate and escalate if necessary.',
+                  'פעולה מוצעת: לבדוק ולהסלים במידת הצורך.'
+                )
+            )}
+          </p>
+
+          <StatusPill
+            tone="warning"
+            label={text(
+              lt(
+                'Human review required',
+                'נדרשת בדיקה אנושית'
+              )
+            )}
+          />
+        </div>
+      )}
+    </div>
+
+    <span className="signal-age">{alert.age}</span>
+  </article>
+))}
           </div>
         </WindowPanel>
 

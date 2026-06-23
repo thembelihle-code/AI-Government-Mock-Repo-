@@ -893,8 +893,7 @@ input:focus-visible,
 .timeline-item,
 .field-row,
 .hero-signal,
-.signal-row {
-  border: 1px solid var(--border);
+.signal-row {border: 1px solid var(--border);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.03);
   padding: 16px;
@@ -1246,4 +1245,18 @@ input:focus-visible,
   to {
     transform: translateX(100%);
   }
+}
+.signal-row {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.signal-row:hover {
+  transform: translateY(-1px);
+}
+
+.signal-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
