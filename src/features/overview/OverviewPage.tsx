@@ -8,10 +8,12 @@ import { demoAdapter } from '../../api/adapters/demoAdapter';
 import { lt } from '../../api/contracts';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function OverviewPage() {
   const { data, loading } = useMockResource(demoAdapter.getOverviewSnapshot);
   const { text } = useI18n();
+  const navigate = useNavigate();
 
   const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
 
@@ -167,7 +169,36 @@ export function OverviewPage() {
         >
           <div className="stack-list">
             {data.workstreams.map((stream) => (
-              <article key={stream.id} className="progress-card">
+  <article
+    key={stream.id}
+    className="progress-card progress-card--clickable"
+    onClick={() => {
+      switch (stream.id) {
+        case 'service-operations':
+          navigate('/service-operations');
+          break;
+
+        case 'representative-assistant':
+          navigate('/representative-assistant');
+          break;
+
+        case 'citizen-services':
+          navigate('/citizen-services');
+          break;
+
+        case 'research-review':
+          navigate('/research-review');
+          break;
+
+        case 'administration':
+          navigate('/administration');
+          break;
+
+        default:
+          break;
+      }
+    }}
+  >
                 <div className="progress-card__header">
                   <div>
                     <strong>{text(stream.title)}</strong>

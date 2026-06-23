@@ -80,33 +80,48 @@ export const overviewSnapshot: OverviewSnapshot = {
   ],
   workstreams: [
     {
-      id: 'w1',
+      id: 'service-operations',
       title: lt('Service Operations', 'תפעול שירות'),
       narrative: lt('Unified monitoring of transcripts, anomalies, inquiry taxonomy, and staffing signals.', 'ניטור מאוחד של תמלולים, חריגות, טקסונומיית פניות ואותות כוח אדם.'),
       progressLabel: lt('Live telemetry mockup', 'מוקאפ טלמטריה חי'),
       progress: 82,
+      route: '/service-operations',
     },
     {
-      id: 'w2',
+      id: 'representative-assistant',
       title: lt('Representative Assistant', 'עוזר לנציג'),
       narrative: lt('Grounded semantic answers with translation and sentiment context for frontline agents.', 'תשובות סמנטיות מבוססות עם תרגום והקשר רגשי לנציגי קו ראשון.'),
       progressLabel: lt('Grounded answer flow', 'זרימת תשובה מבוססת'),
       progress: 76,
+      route: '/representative-assistant',
     },
     {
-      id: 'w3',
+      id: 'citizen-services',
       title: lt('Citizen Services', 'שירותים לאזרח'),
       narrative: lt('Secure intake, extraction, identity-assist, and after-hours digital service flows.', 'קליטה מאובטחת, חילוץ נתונים, סיוע בזיהוי וזרימות שירות דיגיטלי מחוץ לשעות הפעילות.'),
       progressLabel: lt('Secure self-service path', 'מסלול שירות עצמי מאובטח'),
       progress: 79,
+      route: '/citizen-services',
     },
     {
-      id: 'w4',
+      id: 'research-review',
       title: lt('Research Review', 'סקירת מחקר'),
       narrative: lt('Criteria-based triage, recommendation framing, and audit visibility for committees.', 'מיון מבוסס קריטריונים, מסגור המלצות ונראות ביקורת לוועדות.'),
       progressLabel: lt('Committee recommendation pack', 'חבילת המלצה לוועדה'),
       progress: 88,
+      route: '/research-review',
     },
+    {
+    id: 'administration',
+    title: lt('Administration', 'ניהול'),
+    narrative: lt(
+      'Governance, audit events and connector status.',
+      'ממשל, ביקורת וחיבורים.'
+    ),
+    progressLabel: lt('Operations controls', 'בקרות תפעול'),
+    progress: 91,
+    route: '/administration',
+  },
   ],
   cloudCapabilities: [
     {

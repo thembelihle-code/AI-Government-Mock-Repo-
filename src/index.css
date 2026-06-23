@@ -1260,3 +1260,14 @@ input:focus-visible,
   padding-top: 1rem;
   border-top: 1px solid var(--border);
 }
+.progress-card--clickable {
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.progress-card--clickable:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
