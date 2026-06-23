@@ -14,6 +14,15 @@ body,
 }
 
 :root {
+  /* --- Theme Mapping Bridge --- */
+  --color-text-primary: var(--heading);
+  --color-text-secondary: var(--muted-strong);
+  --color-background-primary: var(--card);
+  --color-background-secondary: var(--card-muted);
+  --color-border-tertiary: var(--border);
+  --color-border-secondary: var(--border-strong);
+
+  /* --- Original Root Variables --- */
   --bg-0: #020617;
   --bg-1: #031a2e;
   --bg-2: #061f3d;
