@@ -1308,3 +1308,15 @@ input:focus-visible,
   margin: 0.75rem 0;
   padding-left: 1rem;
 }
+.status-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 20px;
+
+  background: rgba(255,255,255,0.03);
+}

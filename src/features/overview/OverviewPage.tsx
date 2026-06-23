@@ -365,32 +365,43 @@ export function OverviewPage() {
         </WindowPanel>
 
         <WindowPanel
-          title={lt('Execution milestones', 'אבני דרך לביצוע')}
-          subtitle={lt('A clear line from assumptions to live UI outcomes.', 'קו ברור מהנחות עבודה אל תוצרי UI חיים.')}
-          eyebrow={lt('Delivery Thread', 'חוט אספקה')}
-          accent="success"
-        >
-          <div className="timeline-list">
-            {liveData.milestones.map((milestone) => (
-  <article key={milestone.id} className="timeline-item">
-    <StatusPill
-      tone={milestone.status}
-      label={
-        milestone.status === 'success'
-          ? 'Complete'
-          : milestone.status === 'accent'
-          ? 'In Progress'
-          : 'Planned'
-      }
-    />
+  title={lt('System health', 'בריאות המערכת')}
+  subtitle={lt(
+    'Current architecture status.',
+    'מצב הארכיטקטורה הנוכחי'
+  )}
+  eyebrow={lt('Infrastructure', 'תשתית')}
+  accent="info"
+>
+  <div className="stack-list">
 
-    <strong>{text(milestone.label)}</strong>
+    <article className="status-card">
+      <strong>Web Layer</strong>
+      <StatusPill tone="success" label="Healthy" />
+    </article>
 
-    <p>{text(milestone.detail)}</p>
-  </article>
-))}
-          </div>
-        </WindowPanel>
+    <article className="status-card">
+      <strong>Mock API</strong>
+      <StatusPill tone="success" label="Healthy" />
+    </article>
+
+    <article className="status-card">
+      <strong>Vertex AI</strong>
+      <StatusPill tone="warning" label="Planned" />
+    </article>
+
+    <article className="status-card">
+      <strong>PostgreSQL</strong>
+      <StatusPill tone="warning" label="Planned" />
+    </article>
+
+    <article className="status-card">
+      <strong>Human Oversight</strong>
+      <StatusPill tone="accent" label="Enabled" />
+    </article>
+
+  </div>
+</WindowPanel>
       </div>
     </div>
   );
