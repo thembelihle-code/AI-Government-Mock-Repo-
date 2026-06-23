@@ -165,6 +165,7 @@ export function OverviewPage() {
           subtitle={lt('Program-level alerts across all four workstreams.', 'התראות ברמת התוכנית בכל ארבעת זרמי העבודה.')}
           eyebrow={lt('Operations Pulse', 'דופק תפעולי')}
           accent="warning"
+          defaultCollapsed={false}
         >
           <div className="signal-filters">
   <button
@@ -259,6 +260,7 @@ export function OverviewPage() {
           subtitle={lt('Each RFI work area represented as a live UI surface.', 'כל אזור RFI מיוצג כמשטח UI חי.')}
           eyebrow={lt('Feature Coverage', 'כיסוי יכולות')}
           accent="accent"
+          defaultCollapsed={false}
         >
           <div className="stack-list">
             {liveData?.workstreams.map((stream) => (
@@ -313,6 +315,7 @@ export function OverviewPage() {
           subtitle={lt('Visual language aligned to the GCP-native delivery contract.', 'שפה ויזואלית המיושרת לחוזה המסירה ה-GCP-native.')}
           eyebrow={lt('Platform Story', 'סיפור פלטפורמה')}
           accent="info"
+          defaultCollapsed={false}
         >
           <div className="capability-grid">
             {liveData.cloudCapabilities.map((capability) => (
@@ -372,6 +375,7 @@ export function OverviewPage() {
   )}
   eyebrow={lt('Infrastructure', 'תשתית')}
   accent="info"
+  defaultCollapsed={false}
 >
   <div className="stack-list">
 
@@ -410,6 +414,7 @@ export function OverviewPage() {
   )}
   eyebrow={lt('Decision Support', 'תמיכה בהחלטות')}
   accent="accent"
+  defaultCollapsed
 >
   <div className="stack-list">
 
