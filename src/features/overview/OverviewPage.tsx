@@ -7,11 +7,12 @@ import { useMockResource } from '../../hooks/useMockResource';
 import { demoAdapter } from '../../api/adapters/demoAdapter';
 import { lt } from '../../api/contracts';
 import { useI18n } from '../../i18n/I18nProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export function OverviewPage() {
   const { data, loading } = useMockResource(demoAdapter.getOverviewSnapshot);
+  const [liveData, setLiveData] = useState<typeof data | null>(null);
   const { text } = useI18n();
   const navigate = useNavigate();
 
@@ -21,12 +22,63 @@ export function OverviewPage() {
   'all' | 'danger' | 'warning' | 'info'
 >('all');
 
-  if (loading || !data) return <LoadingDeck />;
+  useEffect(() => {
+  if (data) {
+    setLiveData(data);
+  }
+}, [data]);
+
+// TEMPORARY TEST
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log("Refreshing dashboard...");
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Simulated updates
+  useEffect(() => {
+  if (!liveData) return;
+
+  const timer = setInterval(() => {
+    setLiveData((current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+
+        metrics: current.metrics.map((metric) => ({
+          ...metric,
+          points: metric.points.map((point) =>
+            Math.max(
+              10,
+              point + Math.floor(Math.random() * 5 - 2)
+            )
+          ),
+        })),
+
+        alerts: current.alerts.map((alert) => ({
+          ...alert,
+          age:
+            Math.floor(Math.random() * 10 + 1) +
+            ' min ago',
+        })),
+      };
+    });
+  }, 10000);
+
+  return () => clearInterval(timer);
+}, [liveData]);
+
+  if (loading || !data || !liveData) {
+    return <LoadingDeck />;
+  }
 
   const filteredAlerts =
   severityFilter === 'all'
-    ? data.alerts
-    : data.alerts.filter(
+    ? liveData?.alerts ?? []
+    : (liveData?.alerts ?? []).filter(
         (alert) => alert.severity === severityFilter
       );
 
@@ -61,7 +113,7 @@ export function OverviewPage() {
     </section>
 
       <div className="metric-grid">
-        {data.metrics.map((metric) => (
+        {liveData.metrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}
       </div>
@@ -168,7 +220,7 @@ export function OverviewPage() {
           accent="accent"
         >
           <div className="stack-list">
-            {data.workstreams.map((stream) => (
+            {liveData?.workstreams.map((stream) => (
   <article
     key={stream.id}
     className="progress-card progress-card--clickable"
@@ -222,7 +274,7 @@ export function OverviewPage() {
           accent="info"
         >
           <div className="capability-grid">
-            {data.cloudCapabilities.map((capability) => (
+            {liveData?.cloudCapabilities.map((capability) => (
               <article key={capability.id} className="capability-card">
                 <CloudIcon name={capability.icon} label={text(capability.title)} />
                 <div>
@@ -241,7 +293,7 @@ export function OverviewPage() {
           accent="success"
         >
           <div className="timeline-list">
-            {data.milestones.map((milestone) => (
+            {liveData?.milestones.map((milestone) => (
               <article key={milestone.id} className="timeline-item">
                 <StatusPill tone={milestone.status} label={text(milestone.label)} />
                 <p>{text(milestone.detail)}</p>
