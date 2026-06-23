@@ -1247,3 +1247,59 @@ input:focus-visible,
     transform: translateX(100%);
   }
 }
+.crm-layout {
+  display: flex;
+  height: 100%;
+}
+
+.crm-sidebar {
+  width: 280px;
+  padding: 12px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.crm-case-item {
+  padding: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.crm-case-item.active {
+  background: rgba(255,255,255,0.08);
+}
+
+.crm-main {
+  flex: 1;
+  padding: 16px;
+}
+
+.detail-card--animated {
+  animation: fadeSlideIn 0.25s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.crm-status-flow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.crm-status-flow span {
+  padding: 4px 8px;
+  border-radius: 6px;
+  opacity: 0.5;
+}
+
+.crm-status-flow .active-step {
+  opacity: 1;
+  background: rgba(255,255,255,0.1);
+}
+
+.crm-meta, .crm-timeline, .crm-notes {
+  margin-top: 16px;
+}
