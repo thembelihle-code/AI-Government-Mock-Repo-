@@ -371,12 +371,24 @@ export function OverviewPage() {
           accent="success"
         >
           <div className="timeline-list">
-            {liveData?.milestones.map((milestone) => (
-              <article key={milestone.id} className="timeline-item">
-                <StatusPill tone={milestone.status} label={text(milestone.label)} />
-                <p>{text(milestone.detail)}</p>
-              </article>
-            ))}
+            {liveData.milestones.map((milestone) => (
+  <article key={milestone.id} className="timeline-item">
+    <StatusPill
+      tone={milestone.status}
+      label={
+        milestone.status === 'success'
+          ? 'Complete'
+          : milestone.status === 'accent'
+          ? 'In Progress'
+          : 'Planned'
+      }
+    />
+
+    <strong>{text(milestone.label)}</strong>
+
+    <p>{text(milestone.detail)}</p>
+  </article>
+))}
           </div>
         </WindowPanel>
       </div>

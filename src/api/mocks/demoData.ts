@@ -154,25 +154,58 @@ export const overviewSnapshot: OverviewSnapshot = {
     },
   ],
   milestones: [
-    {
-      id: 'm1',
-      label: lt('Theme and shell imported from react-poc patterns', 'ערכת נושא ושלד יובאו מדפוסי react-poc'),
-      detail: lt('Token-driven visual foundation, locale switching, and premium card surfaces are live.', 'בסיס ויזואלי מונחה טוקנים, החלפת שפה ומשטחי כרטיסים פרימיום פעילים.'),
-      status: 'success',
-    },
-    {
-      id: 'm2',
-      label: lt('All six frontend work areas mocked end to end', 'כל ששת אזורי העבודה מוצגים מקצה לקצה'),
-      detail: lt('Every PRD area is navigable with interactive records, citations, and status flows.', 'כל אזור ב-PRD נגיש עם רשומות אינטראקטיביות, ציטוטים וזרימות סטטוס.'),
-      status: 'accent',
-    },
-    {
-      id: 'm3',
-      label: lt('Backend contract intentionally deferred', 'חוזה הבקאנד נדחה במכוון'),
-      detail: lt('Typed adapters isolate UI flows so real APIs can replace mocks later without redesign.', 'אדאפטרים טיפוסיים מבודדים את זרימות ה-UI כך ש-API אמיתי יחליף מוקאים בהמשך בלי עיצוב מחדש.'),
-      status: 'warning',
-    },
-  ],
+  {
+    id: 'm1',
+    label: lt(
+      'Theme System Complete',
+      'מערכת הנושא הושלמה'
+    ),
+    detail: lt(
+      'Premium shell, locale switching and visual tokens are live.',
+      'מעטפת פרימיום, החלפת שפה וטוקנים חזותיים פעילים.'
+    ),
+    status: 'success',
+  },
+
+  {
+    id: 'm2',
+    label: lt(
+      'Overview Dashboard Complete',
+      'לוח המחוונים הושלם'
+    ),
+    detail: lt(
+      'All six work areas are accessible through the command center.',
+      'כל ששת תחומי העבודה זמינים דרך מרכז הבקרה.'
+    ),
+    status: 'success',
+  },
+
+  {
+    id: 'm3',
+    label: lt(
+      'Assistant Module In Progress',
+      'מודול העוזר בתהליך פיתוח'
+    ),
+    detail: lt(
+      'Citation flows and conversation experiences are being refined.',
+      'זרימות הציטוט והשיחות נמצאות בשיפור.'
+    ),
+    status: 'accent',
+  },
+
+  {
+    id: 'm4',
+    label: lt(
+      'API Integration Planned',
+      'אינטגרציית API מתוכננת'
+    ),
+    detail: lt(
+      'Mock adapters will later be replaced with real backend services.',
+      'האדפטרים המדומים יוחלפו בעתיד בשירותי Backend אמיתיים.'
+    ),
+    status: 'warning',
+  },
+],
 };
 
 export const serviceOperationsSnapshot: ServiceOperationsSnapshot = {
