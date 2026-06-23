@@ -1320,3 +1320,26 @@ input:focus-visible,
 
   background: rgba(255,255,255,0.03);
 }
+.recommendation-card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(255,255,255,0.03);
+}
+
+.recommendation-card strong {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--heading);
+}
+
+.recommendation-card p {
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.recommendation-footer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

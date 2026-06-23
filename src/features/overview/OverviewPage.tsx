@@ -402,6 +402,51 @@ export function OverviewPage() {
 
   </div>
 </WindowPanel>
+<WindowPanel
+  title={lt('AI Recommendation Feed', 'המלצות AI')}
+  subtitle={lt(
+    'Recommendations require human approval.',
+    'המלצות דורשות אישור אנושי'
+  )}
+  eyebrow={lt('Decision Support', 'תמיכה בהחלטות')}
+  accent="accent"
+>
+  <div className="stack-list">
+
+   <article className="recommendation-card">
+  <strong>
+    ↑ Call volume expected to rise by 14%
+  </strong>
+
+  <p>
+    Suggested action:
+    Add 2 agents to the support queue.
+  </p>
+
+  <div className="recommendation-footer">
+    <StatusPill tone="info" label="Confidence: 82%" />
+    <StatusPill tone="warning" label="Human approval required" />
+  </div>
+</article>
+
+<article className="recommendation-card">
+  <strong>
+    ↑ Increased citizen portal traffic detected
+  </strong>
+
+  <p>
+    Suggested action:
+    Review authentication capacity.
+  </p>
+
+  <div className="recommendation-footer">
+    <StatusPill tone="info" label="Confidence: 88%" />
+    <StatusPill tone="warning" label="Human approval required" />
+  </div>
+</article>
+
+  </div>
+</WindowPanel>
       </div>
     </div>
   );
