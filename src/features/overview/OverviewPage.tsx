@@ -17,7 +17,8 @@ export function OverviewPage() {
   const navigate = useNavigate();
 
   const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
-
+  const [selectedCapability, setSelectedCapability] =
+  useState<string | null>(null);
   const [severityFilter, setSeverityFilter] = useState<
   'all' | 'danger' | 'warning' | 'info'
 >('all');
@@ -314,15 +315,52 @@ export function OverviewPage() {
           accent="info"
         >
           <div className="capability-grid">
-            {liveData?.cloudCapabilities.map((capability) => (
-              <article key={capability.id} className="capability-card">
-                <CloudIcon name={capability.icon} label={text(capability.title)} />
-                <div>
-                  <strong>{text(capability.title)}</strong>
-                  <p>{text(capability.detail)}</p>
-                </div>
-              </article>
-            ))}
+            {liveData.cloudCapabilities.map((capability) => (
+  <article
+    key={capability.id}
+    className="capability-card capability-card--clickable"
+    onClick={() =>
+      setSelectedCapability(
+        selectedCapability === capability.id
+          ? null
+          : capability.id
+      )
+    }
+  >
+    <CloudIcon
+      name={capability.icon}
+      label={text(capability.title)}
+    />
+
+    <div>
+      <strong>{text(capability.title)}</strong>
+      <p>{text(capability.detail)}</p>
+
+      {selectedCapability === capability.id && (
+        <div className="capability-details">
+
+          <p>Use cases:</p>
+
+          <ul>
+            <li>✓ Representative Assistant</li>
+            <li>✓ Proposal Review</li>
+          </ul>
+
+          <StatusPill
+            tone="warning"
+            label="Human validation required"
+          />
+
+          <StatusPill
+            tone="info"
+            label="Prototype"
+          />
+
+        </div>
+      )}
+    </div>
+  </article>
+))}
           </div>
         </WindowPanel>
 

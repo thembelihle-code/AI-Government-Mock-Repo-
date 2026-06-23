@@ -1271,3 +1271,40 @@ input:focus-visible,
   transform: translateY(-2px);
   border-color: var(--border-strong);
 }
+.time-range-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.time-range-selector button {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.time-range-selector button.active {
+  border-color: var(--border-strong);
+  background: rgba(255,255,255,0.08);
+}
+.capability-card--clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.capability-card--clickable:hover {
+  transform: translateY(-2px);
+}
+
+.capability-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.capability-details ul {
+  margin: 0.75rem 0;
+  padding-left: 1rem;
+}
