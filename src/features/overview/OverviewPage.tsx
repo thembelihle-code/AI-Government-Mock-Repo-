@@ -21,6 +21,8 @@ export function OverviewPage() {
   const [severityFilter, setSeverityFilter] = useState<
   'all' | 'danger' | 'warning' | 'info'
 >('all');
+  
+  const [timeRange, setTimeRange] = useState<'1H' | '24H' | '7D'>('24H');
 
   useEffect(() => {
   if (data) {
@@ -29,13 +31,7 @@ export function OverviewPage() {
 }, [data]);
 
 // TEMPORARY TEST
-  useEffect(() => {
-    const timer = setInterval(() => {
-      console.log("Refreshing dashboard...");
-    }, 10000);
-
-    return () => clearInterval(timer);
-  }, []);
+  
 
   // Simulated updates
   useEffect(() => {
@@ -81,7 +77,28 @@ export function OverviewPage() {
     : (liveData?.alerts ?? []).filter(
         (alert) => alert.severity === severityFilter
       );
+  
+  const displayedMetrics = liveData.metrics.map((metric) => {
+  let multiplier = 1;
 
+  if (timeRange === '1H') {
+    multiplier = 0.4;
+  }
+
+  if (timeRange === '7D') {
+    multiplier = 1.6;
+  }
+
+  const numericValue = parseInt(metric.value.replace('%', ''));
+
+  return {
+    ...metric,
+    value: `${Math.min(
+  100,
+  Math.round(numericValue * multiplier)
+)}%`,
+  };
+});
     
     return (
   <div className="page-stack">
@@ -112,8 +129,31 @@ export function OverviewPage() {
       </div>
     </section>
 
+ <div className="time-range-selector">
+  <button
+    className={timeRange === '1H' ? 'active' : ''}
+    onClick={() => setTimeRange('1H')}
+  >
+    1H
+  </button>
+
+  <button
+    className={timeRange === '24H' ? 'active' : ''}
+    onClick={() => setTimeRange('24H')}
+  >
+    24H
+  </button>
+
+  <button
+    className={timeRange === '7D' ? 'active' : ''}
+    onClick={() => setTimeRange('7D')}
+  >
+    7D
+  </button>
+</div>
+
       <div className="metric-grid">
-        {liveData.metrics.map((metric) => (
+        {displayedMetrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}
       </div>
