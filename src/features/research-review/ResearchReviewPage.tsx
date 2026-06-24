@@ -1,145 +1,348 @@
-import { startTransition, useDeferredValue, useMemo, useState } from 'react';
-import { demoAdapter } from '../../api/adapters/demoAdapter';
-import { lt } from '../../api/contracts';
-import { LoadingDeck } from '../../components/common/LoadingDeck';
-import { MetricCard } from '../../components/common/MetricCard';
-import { StatusPill } from '../../components/common/StatusPill';
-import { WindowPanel } from '../../components/common/WindowPanel';
-import { useMockResource } from '../../hooks/useMockResource';
-import { useI18n } from '../../i18n/I18nProvider';
+import { useEffect, useState } from 'react';
+
+const BASE = 'http://localhost:4000';
+
+type ProposalStatus = 'submitted' | 'eligible' | 'reviewed' | 'notified';
+type ProposalDecision = 'Fund' | 'Waitlist' | 'Decline';
+
+interface Proposal {
+  id: number;
+  title: string;
+  pi: string;
+  category: string | null;
+  abstract: string | null;
+  amount: number;
+  status: ProposalStatus;
+  aiScore: number | null;
+  decision: ProposalDecision | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const res = await fetch(BASE + path, opts);
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error((e as any).error || 'Request failed');
+  }
+  return res.json();
+}
+
+function scoreColor(score: number) {
+  if (score >= 8.5) return '#1D9E75';
+  if (score >= 7) return '#BA7517';
+  return '#E24B4A';
+}
+
+function fmtAmount(n: number) {
+  return 'R ' + Number(n).toLocaleString('en-ZA', { maximumFractionDigits: 0 });
+}
+
+const PILL_STYLES: Record<ProposalStatus, React.CSSProperties> = {
+  submitted:  { background: '#E6F1FB', color: '#0C447C' },
+  eligible:   { background: '#FAEEDA', color: '#633806' },
+  reviewed:   { background: '#EEEDFE', color: '#3C3489' },
+  notified:   { background: '#EAF3DE', color: '#27500A' },
+};
+
+const DECISION_COLORS: Record<ProposalDecision, string> = {
+  Fund:     '#0F6E56',
+  Waitlist: '#854F0B',
+  Decline:  '#A32D2D',
+};
+
+const CATEGORIES = [
+  'Standard research grant',
+  'Early career research award',
+  'Collaborative project',
+  'Applied research',
+  'Fundamental research',
+];
+
+const emptyForm = { title: '', pi: '', category: '', abstract: '', amount: '' };
 
 export function ResearchReviewPage() {
-  const { data, loading } = useMockResource(demoAdapter.getResearchReviewSnapshot);
-  const { text } = useI18n();
-  const [query, setQuery] = useState('');
-  const [selectedProposalId, setSelectedProposalId] = useState('PR-203');
-  const deferredQuery = useDeferredValue(query);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
 
-  const filteredProposals = useMemo(() => {
-    if (!data) return [];
-    const term = deferredQuery.trim().toLowerCase();
-    if (!term) return data.proposals;
-    return data.proposals.filter((proposal) => `${proposal.id} ${proposal.title.en} ${proposal.title.he}`.toLowerCase().includes(term));
-  }, [data, deferredQuery]);
+  const load = async () => {
+    try {
+      const data = await apiFetch<Proposal[]>('/api/proposals');
+      setProposals(data);
+    } catch (e: any) {
+      setError('Could not load proposals — is the backend running on port 4000?');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading || !data) return <LoadingDeck />;
+  useEffect(() => { load(); }, []);
 
-  const selectedProposal = filteredProposals.find((item) => item.id === selectedProposalId) ?? filteredProposals[0];
+  const act = async (fn: () => Promise<any>) => {
+    try { await fn(); await load(); }
+    catch (e: any) { setError(e.message); }
+  };
 
-  if (!selectedProposal) return <LoadingDeck />;
+  const submitProposal = async () => {
+    if (!form.title.trim()) { setError('A proposal title is required.'); return; }
+    setSubmitting(true);
+    try {
+      await apiFetch('/api/proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, amount: Number(form.amount) || 0 }),
+      });
+      setForm(emptyForm);
+      setFormOpen(false);
+      await load();
+    } catch (e: any) { setError(e.message); }
+    finally { setSubmitting(false); }
+  };
+
+  const sorted = [...proposals].sort((a, b) => {
+    const s = (b.aiScore ?? -1) - (a.aiScore ?? -1);
+    return s !== 0 ? s : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const stats = {
+    total: proposals.length,
+    submitted: proposals.filter(p => p.status === 'submitted').length,
+    reviewed: proposals.filter(p => p.status === 'reviewed' || p.status === 'notified').length,
+    avg: (() => {
+      const scored = proposals.filter(p => p.aiScore != null);
+      return scored.length ? (scored.reduce((a, p) => a + p.aiScore!, 0) / scored.length).toFixed(1) : '—';
+    })(),
+  };
 
   return (
-    <div className="page-stack">
-      <div className="metric-grid">
-        {data.metrics.map((metric) => (
-          <MetricCard key={metric.id} metric={metric} />
+    <div style={{ padding: '1.5rem 2rem', maxWidth: 860, margin: '0 auto', fontFamily: 'var(--font-sans, system-ui)' }}>
+
+      {/* Header */}
+      <div style={{ borderBottom: '0.5px solid var(--color-border-tertiary, #e5e5e5)', marginBottom: '1.5rem', paddingBottom: '1rem' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 500, margin: '0 0 4px', color: 'var(--color-text-primary)' }}>Research proposal review</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', margin: 0 }}>
+          Screen proposals, run AI scoring, and record committee decisions — all in one place.
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: '1.5rem' }}>
+        {[
+          { label: 'Total', value: stats.total },
+          { label: 'Awaiting screen', value: stats.submitted },
+          { label: 'AI reviewed', value: stats.reviewed },
+          { label: 'Avg score', value: stats.avg },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ background: 'var(--color-background-secondary, #f5f5f5)', borderRadius: 8, padding: '14px 16px' }}>
+            <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</p>
+            <p style={{ fontSize: 24, fontWeight: 500, margin: 0, color: 'var(--color-text-primary)' }}>{loading ? '—' : value}</p>
+          </div>
         ))}
       </div>
 
-      <div className="page-grid page-grid--research">
-        <WindowPanel className="page-grid__span-2" title={lt('Proposal queue', 'תור הצעות')} subtitle={lt('Queue, shortlist, and discussion candidates stay visible together.', 'התור, הרשימה הקצרה ומועמדי הדיון נשארים גלויים יחד.')} eyebrow={lt('Committee Intake', 'קליטת ועדה')} accent="accent">
-          <div className="toolbar-row">
-            <input
-              className="glass-input"
-              type="search"
-              value={query}
-              onChange={(event) => startTransition(() => setQuery(event.target.value))}
-              placeholder={text(lt('Search proposals by title or ID', 'חפש הצעות לפי כותרת או מזהה'))}
-            />
-            <StatusPill tone="warning" label={text(lt('Advisory only', 'ייעוצי בלבד'))} />
-          </div>
-          <div className="record-list">
-            {filteredProposals.map((proposal) => (
-              <button key={proposal.id} type="button" className={['record-row', proposal.id === selectedProposal.id ? 'record-row--active' : ''].join(' ')} onClick={() => setSelectedProposalId(proposal.id)}>
-                <div className="record-row__top">
-                  <strong>{proposal.id}</strong>
-                  <StatusPill tone={proposal.score >= 88 ? 'success' : proposal.score >= 80 ? 'accent' : 'warning'} label={`${proposal.score}`} />
-                </div>
-                <strong className="record-row__title">{text(proposal.title)}</strong>
-                <p>{text(proposal.domain)}</p>
-                <div className="tag-row">
-                  <span className="tag-chip">{text(proposal.statusLabel)}</span>
-                  <span className="tag-chip tag-chip--muted">{proposal.readiness}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </WindowPanel>
+      {/* Submit card */}
+      <div style={{ background: 'var(--color-background-primary, #fff)', border: '0.5px solid var(--color-border-tertiary, #e5e5e5)', borderRadius: 12, padding: '1.25rem', marginBottom: '1.5rem' }}>
+        <button
+          onClick={() => setFormOpen(o => !o)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 15, fontWeight: 500, color: 'var(--color-text-primary)', width: '100%', textAlign: 'left' }}
+        >
+          <span style={{ fontSize: 18 }}>{formOpen ? '−' : '+'}</span>
+          Submit a new proposal
+        </button>
 
-        <WindowPanel title={lt('Recommendation frame', 'מסגרת המלצה')} subtitle={lt('Recommendations remain preliminary and committee-owned.', 'ההמלצות נשארות ראשוניות ובבעלות הוועדה.')} eyebrow={lt('Selected Proposal', 'הצעה נבחרת')} accent="success">
-          <div className="detail-card">
-            <div className="detail-card__hero">
-              <div>
-                <span className="eyebrow">{selectedProposal.id}</span>
-                <h3>{text(selectedProposal.title)}</h3>
+        {formOpen && (
+          <div style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { id: 'title', label: 'Proposal title *', placeholder: 'e.g. Climate impact on coastal wetlands', full: true },
+              { id: 'pi', label: 'Principal investigator', placeholder: 'Full name', full: false },
+              { id: 'amount', label: 'Requested amount (R)', placeholder: '0', full: false, type: 'number' },
+            ].map(({ id, label, placeholder, full, type }) => (
+              <div key={id} style={{ display: 'flex', flexDirection: 'column', gap: 4, ...(full ? { gridColumn: '1 / -1' } : {}) }}>
+                <label htmlFor={`f-${id}`} style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{label}</label>
+                <input
+                  id={`f-${id}`}
+                  type={type || 'text'}
+                  placeholder={placeholder}
+                  value={(form as any)[id]}
+                  onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
+                  style={{ color: 'var(--color-text-primary)' }}
+                />
               </div>
-              <StatusPill tone="success" label={`${selectedProposal.score}`} />
-            </div>
-            <div className="tag-row">
-              <span className="tag-chip">{text(selectedProposal.domain)}</span>
-              <span className="tag-chip tag-chip--muted">{text(selectedProposal.statusLabel)}</span>
-              <span className="tag-chip tag-chip--muted">{selectedProposal.readiness}</span>
-            </div>
-            <p>{text(data.recommendation)}</p>
-            <div className="callout-box">
-              <span className="eyebrow">{text(lt('Committee prompts', 'שאלות לוועדה'))}</span>
-              <ul className="rail-list">
-                <li>{text(lt('Confirm external data dependency readiness.', 'לאשר את מוכנות התלות בנתונים חיצוניים.'))}</li>
-                <li>{text(lt('Validate pilot sequencing against ethics review windows.', 'לאמת את תזמון הפיילוט מול חלונות סקירה אתית.'))}</li>
-              </ul>
-            </div>
-          </div>
-        </WindowPanel>
-
-        <WindowPanel title={lt('Criteria scores', 'ציוני קריטריונים')} subtitle={lt('The review surface shows explicit rationale, not opaque scoring.', 'משטח הסקירה מציג נימוקים מפורשים ולא דירוג אטום.')} eyebrow={lt('Evaluation', 'הערכה')} accent="info">
-          <div className="stack-list">
-            {data.criteria.map((criterion) => (
-              <article key={criterion.id} className="progress-card progress-card--tight">
-                <div className="progress-card__header">
-                  <strong>{text(criterion.label)}</strong>
-                  <span className="progress-card__value">{criterion.score}</span>
-                </div>
-                <div className="progress-bar">
-                  <span style={{ width: `${criterion.score}%` }} />
-                </div>
-                <div className="progress-card__footer">{text(criterion.rationale)}</div>
-              </article>
             ))}
-          </div>
-        </WindowPanel>
 
-        <WindowPanel title={lt('Strengths and risks', 'חוזקות וסיכונים')} subtitle={lt('The committee gets a readable brief, not raw document dump.', 'הוועדה מקבלת תדריך קריא ולא הצפת מסמכים גולמיים.')} eyebrow={lt('Review Notes', 'הערות סקירה')} accent="warning">
-          <div className="dual-list">
-            <div>
-              <h3>{text(lt('Strengths', 'חוזקות'))}</h3>
-              <ul className="rail-list">
-                {data.strengths.map((item, index) => (
-                  <li key={index}>{text(item)}</li>
-                ))}
-              </ul>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label htmlFor="f-category" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Research category</label>
+              <select id="f-category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                <option value="">Select category</option>
+                {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+              </select>
             </div>
-            <div>
-              <h3>{text(lt('Risks', 'סיכונים'))}</h3>
-              <ul className="rail-list">
-                {data.risks.map((item, index) => (
-                  <li key={index}>{text(item)}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </WindowPanel>
 
-        <WindowPanel title={lt('Audit trail', 'שביל ביקורת')} subtitle={lt('Every recommendation remains explainable and review-safe.', 'כל המלצה נשארת ברת הסבר ובטוחה לסקירה.')} eyebrow={lt('Traceability', 'עקיבות')} accent="accent">
-          <div className="timeline-list">
-            {data.auditTrail.map((item) => (
-              <article key={item.id} className="timeline-item">
-                <StatusPill tone={item.status} label={text(item.label)} />
-                <p>{text(item.detail)}</p>
-              </article>
-            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, gridColumn: '1 / -1' }}>
+              <label htmlFor="f-abstract" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                Abstract — describe the research goals and methodology
+              </label>
+              <textarea
+                id="f-abstract"
+                placeholder="What is this research trying to achieve? How will it be carried out?"
+                value={form.abstract}
+                onChange={e => setForm(f => ({ ...f, abstract: e.target.value }))}
+                style={{ resize: 'vertical', minHeight: 80 }}
+              />
+            </div>
+
+            {/* Document Upload Section */}
+            <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+              <label htmlFor="f-file" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                Upload proposal document (PDF or DOCX)
+              </label>
+              <input
+                id="f-file"
+                type="file"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    console.log('Selected file:', file.name);
+                    // You can store this in a state variable later when your backend is ready to handle files!
+                  }
+                }}
+                style={{ 
+                  color: 'var(--color-text-primary)',
+                  padding: '8px'
+                }}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, marginTop: 8 }}>
+              <button
+                onClick={submitProposal}
+                disabled={submitting}
+                style={{ background: 'var(--color-text-primary)', color: 'var(--color-background-primary)', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 14, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.5 : 1 }}
+              >
+                {submitting ? 'Submitting…' : 'Submit proposal'}
+              </button>
+              <button onClick={() => setFormOpen(false)} style={{ fontSize: 13, padding: '5px 12px', borderRadius: 8, border: '0.5px solid var(--color-border-secondary, #ccc)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-primary)' }}>
+                Cancel
+              </button>
+            </div>
           </div>
-        </WindowPanel>
+        )}
       </div>
+
+      {/* Toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>All proposals</p>
+        <button
+          onClick={() => act(() => apiFetch('/api/notify', { method: 'POST' }))}
+          style={{ fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '0.5px solid var(--color-border-secondary, #ccc)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          🔔 Notify reviewed
+        </button>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div style={{ background: '#FCEBEB', color: '#791F1F', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{error}</span>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#791F1F' }} aria-label="Dismiss error">×</button>
+        </div>
+      )}
+
+      {/* Proposals */}
+      {loading ? (
+        <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', padding: '3rem 0' }}>Loading proposals…</p>
+      ) : sorted.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--color-text-secondary)', fontSize: 14 }}>
+          <p style={{ margin: '0 0 6px', fontSize: 28 }}>📄</p>
+          No proposals yet. Submit one above to get started.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {sorted.map(p => (
+            <div key={p.id} style={{ background: 'var(--color-background-primary, #fff)', border: '0.5px solid var(--color-border-tertiary, #e5e5e5)', borderRadius: 12, padding: '1rem 1.25rem' }}>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 15, fontWeight: 500, margin: '0 0 3px', color: 'var(--color-text-primary)' }}>{p.title}</p>
+                  <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: 0 }}>
+                    {p.pi || 'Unknown investigator'} · {p.category || 'Uncategorised'}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 99, fontWeight: 500, ...PILL_STYLES[p.status] }}>
+                    {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                  </span>
+                  {p.aiScore != null && (
+                    <div>
+                      <div style={{ fontSize: 22, fontWeight: 500, textAlign: 'right', lineHeight: 1, color: 'var(--color-text-primary)' }}>
+                        {p.aiScore.toFixed(1)}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--color-text-secondary)' }}>/10</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', textAlign: 'right', marginTop: 2 }}>AI score</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {p.aiScore != null && (
+                <div style={{ height: 4, background: 'var(--color-border-tertiary, #e5e5e5)', borderRadius: 2, marginBottom: 10, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${(p.aiScore / 10) * 100}%`, background: scoreColor(p.aiScore), borderRadius: 2 }} />
+                </div>
+              )}
+
+              {p.abstract && (
+                <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '0 0 10px', lineHeight: 1.6 }}>
+                  {p.abstract.length > 160 ? p.abstract.slice(0, 160) + '…' : p.abstract}
+                </p>
+              )}
+
+              {p.aiScore != null && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                  {['Significance', 'Feasibility', 'Methodology', 'Budget fit'].map(c => (
+                    <span key={c} style={{ fontSize: 12, background: 'var(--color-background-secondary, #f5f5f5)', borderRadius: 99, padding: '2px 8px', color: 'var(--color-text-secondary)' }}>{c}</span>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, borderTop: '0.5px solid var(--color-border-tertiary, #e5e5e5)', paddingTop: 10 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {p.status === 'submitted' && (
+                    <button onClick={() => act(() => apiFetch(`/api/proposals/${p.id}/eligibility`, { method: 'PATCH' }))}
+                      style={{ fontSize: 13, padding: '5px 12px', borderRadius: 8, border: '0.5px solid var(--color-border-secondary, #ccc)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      ✓ Mark eligible
+                    </button>
+                  )}
+                  {p.status === 'eligible' && (
+                    <button onClick={() => act(() => apiFetch(`/api/proposals/${p.id}/ai-review`, { method: 'POST' }))}
+                      style={{ fontSize: 13, padding: '5px 12px', borderRadius: 8, border: '0.5px solid var(--color-border-secondary, #ccc)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      ✦ Run AI review
+                    </button>
+                  )}
+                  {p.status === 'reviewed' && (['Fund', 'Waitlist', 'Decline'] as ProposalDecision[]).map(d => (
+                    <button key={d} onClick={() => act(() => apiFetch(`/api/proposals/${p.id}/decision`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decision: d }) }))}
+                      style={{ fontSize: 13, padding: '5px 12px', borderRadius: 8, border: `0.5px solid ${DECISION_COLORS[d]}`, background: 'transparent', cursor: 'pointer', color: DECISION_COLORS[d] }}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {p.decision && (
+                    <span style={{ fontSize: 13, fontWeight: 500, color: DECISION_COLORS[p.decision] }}>
+                      ● {p.decision}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{fmtAmount(p.amount)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
