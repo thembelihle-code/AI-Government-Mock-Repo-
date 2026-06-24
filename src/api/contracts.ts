@@ -30,6 +30,7 @@ export type WorkstreamCard = {
   narrative: LocalizedText;
   progressLabel: LocalizedText;
   progress: number;
+  route: string;
 };
 
 export type CloudCapability = {
