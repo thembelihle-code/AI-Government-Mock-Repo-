@@ -99,21 +99,6 @@ export function AppShell({ children }: AppShellProps) {
 
       <div className="shell-body">
         <main className="shell-main">{children ?? <Outlet />}</main>
-        <aside className="shell-rail">
-          <section className="rail-card">
-            <span className="eyebrow">{text(lt('Delivery Mode', 'מצב אספקה'))}</span>
-            <h3>{text(lt('Frontend-only, backend-compatible', 'פרונטנד בלבד, תואם בקאנד'))}</h3>
-            <p>{text(lt('The live experience is fully navigable now while preserving the future web/api/postgres contract.', 'החוויה החיה ניתנת לניווט מלא כבר עכשיו תוך שימור החוזה העתידי של web/api/postgres.'))}</p>
-          </section>
-          <section className="rail-card">
-            <span className="eyebrow">{text(lt('Quality Gates', 'שערי איכות'))}</span>
-            <ul className="rail-list">
-              <li>{text(lt('RTL-first with English LTR support', 'RTL תחילה עם תמיכה מלאה ב- English LTR'))}</li>
-              <li>{text(lt('Collapsible and expandable windows', 'חלונות ניתנים לכיווץ ולהרחבה'))}</li>
-              <li>{text(lt('Responsive layouts across desktop, tablet, and mobile', 'פריסות רספונסיביות למחשב, טאבלט ומובייל'))}</li>
-            </ul>
-          </section>
-        </aside>
       </div>
     </div>
   );
