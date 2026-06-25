@@ -1,6 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { demoAdapter } from '../../api/adapters/demoAdapter';
 import { lt } from '../../api/contracts';
 import { LoadingDeck } from '../../components/common/LoadingDeck';
@@ -24,6 +24,16 @@ export function RepresentativeAssistantPage() {
   const [isMicListening, setIsMicRecording] = useState<boolean>(false);
   const [selectedCitationId, setSelectedCitationId] = useState<string | null>(null);
   const [notesState, setNotesState] = useState<string>('');
+
+  // --- AUDIO AI PIPELINE STATE TRACKERS (Integrated from Code 1) ---
+  const [isRecording, setIsRecording] = useState(false);
+  const [statusText, setStatusText] = useState<string>('Idle');
+  const [liveEnglish, setLiveEnglish] = useState<string>('');
+  const [liveHebrew, setLiveHebrew] = useState<string>('');
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  // ─────────────────────────────────────────────
 
   // Localized mock baseline state extensions to power robust interactive loops
   const dynamicPrompts = useMemo(() => {
@@ -132,6 +142,58 @@ export function RepresentativeAssistantPage() {
       data.translations = [generatedTranslation, ...data.translations];
       setIsMicRecording(false);
     }, 1200);
+  };
+
+  // --- AUDIO PROCESSING HANDLER (Integrated from Code 1) ---
+  const handleMicToggle = async () => {
+    if (!isRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          setStatusText('Processing...');
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          
+          const formData = new FormData();
+          formData.append("file", audioBlob, "recording.webm");
+
+          try {
+            const response = await fetch("http://localhost:8000/process_audio", {
+              method: "POST",
+              body: formData
+            });
+            const result = await response.json();
+            
+            setLiveEnglish(result.english_transcript || '[No speech detected]');
+            setLiveHebrew(result.hebrew_translation || '[לא זוהה דיבור]');
+            setStatusText('Success');
+          } catch (err) {
+            console.error("Pipeline server unreachable:", err);
+            setStatusText('Connection Error');
+          }
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+        setStatusText('Recording...');
+      } catch (err) {
+        console.error("Mic access denied:", err);
+        setStatusText('Mic Error');
+      }
+    } else {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      }
+      setIsRecording(false);
+    }
   };
 
   return (
@@ -301,10 +363,42 @@ export function RepresentativeAssistantPage() {
             eyebrow={text(lt('Language Layer', 'שכבת שפה'))} 
             accent="info"
           >
-            {/* AUDIO CONTROL TRIGGERS */}
+            {/* --- RE-INTEGRATED FROM CODE 1 --- */}
+            <div className="assistant-prompts" style={{ marginBottom: '10px' }}>
+              <span className="eyebrow" style={{ color: '#94a3b8' }}>TRIGGER MIC INTERPRETATION FEED LOOP</span>
+            </div>
+
+            {/* Functional AI Processing Interaction Box */}
+            <div style={{ padding: '14px', background: '#0f172a', borderRadius: '8px', border: '1px solid #1e293b', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                type="button" 
+                onClick={handleMicToggle} 
+                style={{ cursor: 'pointer', padding: '12px', borderRadius: '6px', border: 'none', color: 'white', fontSize: '15px', fontWeight: 'bold', backgroundColor: isRecording ? '#ef4444' : '#38bdf8', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+              >
+                {isRecording ? '🛑 Stop Stream Recording' : '🎙️ Live Voice Translation'}
+              </button>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500', marginLeft: '2px' }}>
+                Pipeline Status: <span style={{ color: isRecording ? '#f87171' : '#38bdf8', fontWeight: 'bold' }}>{statusText}</span>
+              </div>
+            </div>
+
+            {/* Dynamic Local Transcription Output Display Card Insertion */}
+            {(liveEnglish || liveHebrew) && (
+              <article className="translation-card" style={{ borderLeft: '4px solid #38bdf8', background: 'rgba(56, 189, 248, 0.06)', padding: '15px', borderRadius: '6px', marginBottom: '15px' }}>
+                <div className="translation-card__meta">
+                  <strong style={{ color: '#38bdf8' }}>LIVE INPUT → TRANSLATION</strong>
+                  <StatusPill tone="info" label="Active Pipeline Engine" />
+                </div>
+                <p style={{ fontWeight: 500, color: '#f1f5f9', margin: '8px 0' }}>{liveEnglish}</p>
+                <p className="translation-card__output" style={{ direction: 'rtl', textAlign: 'right', fontSize: '17px', color: '#38bdf8', marginTop: '6px', fontWeight: 'bold' }}>{liveHebrew}</p>
+              </article>
+            )}
+            {/* --------------------------------- */}
+
+            {/* AUDIO CONTROL TRIGGERS (Code 2 Mock Selectors) */}
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '6px', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
               <div style={{ fontSize: '11px', color: '#8b949e', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '6px' }}>
-                {text(lt('Trigger Mic Interpretation Feed Loop', 'הפעלת הזנת תמלול ותרגום חלופי בזמן אמת'))}
+                {text(lt('Simulated Stream Triggers', 'הפעלת הזנת תמלול ותרגום חלופי בזמן אמת'))}
               </div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {['Arabic', 'Russian', 'Amharic'].map((lang) => (
