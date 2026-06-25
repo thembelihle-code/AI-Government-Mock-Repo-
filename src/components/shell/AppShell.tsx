@@ -1,4 +1,4 @@
-import { BellRing, Cloud, Clock3, Layers3, ShieldCheck } from 'lucide-react';
+import { Cloud, Clock3, ShieldCheck } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { lt } from '../../api/contracts';
@@ -79,22 +79,7 @@ export function AppShell({ children }: AppShellProps) {
             <span className="tag-chip">{text(lt('Resizing panels enabled', 'פאנלים ניתנים לשינוי גודל'))}</span>
           </div>
         </div>
-        <div className="hero-signals">
-          <div className="hero-signal">
-            <BellRing size={16} />
-            <div>
-              <strong>{text(lt('Live mock workflow', 'זרימת מוקאפ חיה'))}</strong>
-              <span>{text(lt('Interactive states with typed adapters', 'מצבים אינטראקטיביים עם אדאפטרים טיפוסיים'))}</span>
-            </div>
-          </div>
-          <div className="hero-signal">
-            <Layers3 size={16} />
-            <div>
-              <strong>{text(lt('react-poc pattern reuse', 'שימוש חוזר מדפוסי react-poc'))}</strong>
-              <span>{text(lt('Theme tokens, locale control, and GCP visual language retained', 'טוקני נושא, בקרת שפה ושפה ויזואלית של GCP נשמרו'))}</span>
-            </div>
-          </div>
-        </div>
+        {/* The entire hero-signals div container has been removed from here */}
       </section>
 
       <div className="shell-body">

@@ -78,4 +78,4 @@ async def process_audio(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="localhost", port=8001) # <-- Changed from 8000 to 8001
