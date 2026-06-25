@@ -103,32 +103,6 @@ export function OverviewPage() {
     
     return (
   <div className="page-stack">
-    <section className="feature-banner">
-      <div>
-        <span className="eyebrow">
-          {text(lt('Program Narrative', 'נרטיב התוכנית'))}
-        </span>
-        <h2>{text(data.missionTitle)}</h2>
-        <p>{text(data.missionNarrative)}</p>
-      </div>
-
-      <div className="feature-banner__chips">
-        <StatusPill
-          tone="accent"
-          label={text(lt('GCP-first', 'GCP-first'))}
-        />
-
-        <StatusPill
-          tone="success"
-          label={text(lt('React + TypeScript', 'React + TypeScript'))}
-        />
-
-        <StatusPill
-          tone="warning"
-          label={text(lt('Human oversight on', 'פיקוח אנושי פעיל'))}
-        />
-      </div>
-    </section>
 
  <div className="time-range-selector">
   <button
