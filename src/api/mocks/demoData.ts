@@ -53,31 +53,81 @@ export const overviewSnapshot: OverviewSnapshot = {
     },
   ],
   alerts: [
-    {
-      id: 'ops-1',
-      title: lt('Translation demand spike in Arabic channels', 'קפיצה בביקוש לתרגום בערוצים בערבית'),
-      summary: lt('Frontline queues are trending above capacity in phone and WhatsApp assisted flows.', 'תורי קו ראשון במגמת עומס מעל הקיבולת בשיחות ובזרימות מסייעות ב-WhatsApp.'),
-      severity: 'warning',
-      source: 'Ops telemetry',
-      age: '4m',
-    },
-    {
-      id: 'ops-2',
-      title: lt('Research review pack completed for 11 proposals', 'חבילת סקירה הושלמה עבור 11 הצעות'),
-      summary: lt('The latest scoring bundle is ready for committee review with cited rationale.', 'חבילת הדירוג האחרונה מוכנה לדיון בוועדה עם נימוקים מצוטטים.'),
-      severity: 'success',
-      source: 'Review workflow',
-      age: '17m',
-    },
-    {
-      id: 'ops-3',
-      title: lt('Identity assist confidence dropped below target in IVR pilot', 'ביטחון סיוע בזיהוי ירד מתחת ליעד בפיילוט IVR'),
-      summary: lt('Low-confidence cases are being routed to human confirmation with zero-block fallback.', 'מקרים בעלי ביטחון נמוך מנותבים לאישור אנושי עם מסלול גיבוי שאינו חוסם.'),
-      severity: 'danger',
-      source: 'Citizen services',
-      age: '29m',
-    },
-  ],
+  {
+    id: 'ops-1',
+    title: lt(
+      'Translation demand spike in Arabic channels',
+      'קפיצה בביקוש לתרגום בערוצים בערבית'
+    ),
+    summary: lt(
+      'Frontline queues are trending above capacity in phone and WhatsApp assisted flows.',
+      'תורי קו ראשון במגמת עומס מעל הקיבולת בשיחות ובזרימות מסייעות ב-WhatsApp.'
+    ),
+    severity: 'warning',
+    source: 'Ops telemetry',
+    age: '4m',
+
+    recommendation: lt(
+      'Deploy additional Arabic-speaking agents and activate overflow translation support.',
+      'הקצה נציגים נוספים דוברי ערבית והפעל תמיכת תרגום נוספת.'
+    ),
+
+    reviewLabel: lt(
+      'Operations review required',
+      'נדרשת בדיקת תפעול'
+    ),
+  },
+
+  {
+    id: 'ops-2',
+    title: lt(
+      'Research review pack completed for 11 proposals',
+      'חבילת סקירה הושלמה עבור 11 הצעות'
+    ),
+    summary: lt(
+      'The latest scoring bundle is ready for committee review with cited rationale.',
+      'חבילת הדירוג האחרונה מוכנה לדיון בוועדה עם נימוקים מצוטטים.'
+    ),
+    severity: 'success',
+    source: 'Review workflow',
+    age: '17m',
+
+    recommendation: lt(
+      'Schedule committee review and validate AI-generated scoring rationale before final approval.',
+      'יש לתזמן סקירת ועדה ולאמת את נימוקי הדירוג שנוצרו על ידי הבינה המלאכותית לפני האישור הסופי.'
+    ),
+
+    reviewLabel: lt(
+      'Committee validation required',
+      'נדרש אישור ועדה'
+    ),
+  },
+
+  {
+    id: 'ops-3',
+    title: lt(
+      'Identity assist confidence dropped below target in IVR pilot',
+      'ביטחון סיוע בזיהוי ירד מתחת ליעד בפיילוט IVR'
+    ),
+    summary: lt(
+      'Low-confidence cases are being routed to human confirmation with zero-block fallback.',
+      'מקרים בעלי ביטחון נמוך מנותבים לאישור אנושי עם מסלול גיבוי שאינו חוסם.'
+    ),
+    severity: 'danger',
+    source: 'Citizen services',
+    age: '29m',
+
+    recommendation: lt(
+      'Audit failed IVR interactions and retrain identity verification models using verified citizen records.',
+      'יש לבדוק אינטראקציות IVR שנכשלו ולעדכן את מודלי אימות הזהות באמצעות רשומות אזרחים מאומתות.'
+    ),
+
+    reviewLabel: lt(
+      'AI model review required',
+      'נדרשת בדיקת מודל AI'
+    ),
+  },
+],
   workstreams: [
     {
       id: 'service-operations',

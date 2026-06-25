@@ -22,6 +22,8 @@ export type Alert = {
   severity: Tone;
   source: string;
   age: string;
+  recommendation?: LocalizedText;
+  reviewLabel?: LocalizedText;
 };
 
 export type WorkstreamCard = {

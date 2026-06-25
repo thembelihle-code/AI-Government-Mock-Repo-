@@ -199,28 +199,20 @@ export function OverviewPage() {
 
       <p>{text(alert.summary)}</p>
 
-      {selectedAlert === alert.id && (
-        <div className="signal-details">
-          <p>
-            {text(
-                lt(
-                  'Suggested action: investigate and escalate if necessary.',
-                  'פעולה מוצעת: לבדוק ולהסלים במידת הצורך.'
-                )
-            )}
-          </p>
+{selectedAlert === alert.id && (
+  <div className="signal-details">
+    {alert.recommendation && (
+  <p>{text(alert.recommendation)}</p>
+)}
 
-          <StatusPill
-            tone="warning"
-            label={text(
-              lt(
-                'Human review required',
-                'נדרשת בדיקה אנושית'
-              )
-            )}
-          />
-        </div>
-      )}
+{alert.reviewLabel && (
+  <StatusPill
+    tone="warning"
+    label={text(alert.reviewLabel)}
+  />
+)}
+  </div>
+)}
     </div>
 
     <span className="signal-age">{alert.age}</span>
