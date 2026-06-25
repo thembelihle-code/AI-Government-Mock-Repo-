@@ -532,14 +532,12 @@ input:focus-visible,
 
 .shell-body {
   margin-top: 22px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 18px;
-  align-items: start;
+  display: block
 }
 
 .shell-main {
   min-width: 0;
+  width: 100%;
 }
 
 .shell-rail {

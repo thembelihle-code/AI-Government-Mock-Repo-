@@ -103,32 +103,6 @@ export function OverviewPage() {
     
     return (
   <div className="page-stack">
-    <section className="feature-banner">
-      <div>
-        <span className="eyebrow">
-          {text(lt('Program Narrative', 'נרטיב התוכנית'))}
-        </span>
-        <h2>{text(data.missionTitle)}</h2>
-        <p>{text(data.missionNarrative)}</p>
-      </div>
-
-      <div className="feature-banner__chips">
-        <StatusPill
-          tone="accent"
-          label={text(lt('GCP-first', 'GCP-first'))}
-        />
-
-        <StatusPill
-          tone="success"
-          label={text(lt('React + TypeScript', 'React + TypeScript'))}
-        />
-
-        <StatusPill
-          tone="warning"
-          label={text(lt('Human oversight on', 'פיקוח אנושי פעיל'))}
-        />
-      </div>
-    </section>
 
  <div className="time-range-selector">
   <button
@@ -225,28 +199,20 @@ export function OverviewPage() {
 
       <p>{text(alert.summary)}</p>
 
-      {selectedAlert === alert.id && (
-        <div className="signal-details">
-          <p>
-            {text(
-                lt(
-                  'Suggested action: investigate and escalate if necessary.',
-                  'פעולה מוצעת: לבדוק ולהסלים במידת הצורך.'
-                )
-            )}
-          </p>
+{selectedAlert === alert.id && (
+  <div className="signal-details">
+    {alert.recommendation && (
+  <p>{text(alert.recommendation)}</p>
+)}
 
-          <StatusPill
-            tone="warning"
-            label={text(
-              lt(
-                'Human review required',
-                'נדרשת בדיקה אנושית'
-              )
-            )}
-          />
-        </div>
-      )}
+{alert.reviewLabel && (
+  <StatusPill
+    tone="warning"
+    label={text(alert.reviewLabel)}
+  />
+)}
+  </div>
+)}
     </div>
 
     <span className="signal-age">{alert.age}</span>
