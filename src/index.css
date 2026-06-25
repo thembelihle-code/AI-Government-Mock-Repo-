@@ -14,6 +14,7 @@ body,
 }
 
 :root {
+  
   /* --- Theme Mapping Bridge --- */
   --color-text-primary: var(--heading);
   --color-text-secondary: var(--muted-strong);
@@ -1254,6 +1255,42 @@ input:focus-visible,
   to {
     transform: translateX(100%);
   }
+  
+}
+/* Form Element Styling for Research Review Page */
+input, select, textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--heading) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+/* Add this right below your input, select, textarea block */
+select option {
+  background-color: #061a33 !important; /* Matches your dark --card background variable */
+  color: var(--heading) !important;
+}
+
+/* Light theme overrides for dropdown options */
+:root[data-theme='clinical-calm'] select option,
+:root[data-theme='gov-trust'] select option {
+  background-color: #ffffff !important;
+  color: #082634 !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--muted) !important;
+}
+
+/* Light theme color corrections */
+:root[data-theme='clinical-calm'] input,
+:root[data-theme='clinical-calm'] select,
+:root[data-theme='clinical-calm'] textarea,
+:root[data-theme='gov-trust'] input,
+:root[data-theme='gov-trust'] select,
+:root[data-theme='gov-trust'] textarea {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 .signal-row {
   cursor: pointer;
